@@ -1,0 +1,25 @@
+-- CAUTION: Run only in MySQL Workbench after executing 01_inspect_existing_mysql.sql
+-- and confirming which accounts are MISSING. This script does not DROP or recreate a database.
+-- Replace the two password placeholders with unique strong local development passwords first.
+-- If an account already exists, DO NOT run its CREATE USER / GRANT block blindly:
+-- review SHOW GRANTS and determine whether its current password is known. CREATE USER IF NOT
+-- EXISTS does not change an existing password. This example targets native MySQL at 127.0.0.1.
+
+CREATE DATABASE IF NOT EXISTS food_fitness_tracker
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_0900_ai_ci;
+
+-- Run this block only if 'food_app'@'127.0.0.1' is confirmed missing.
+CREATE USER IF NOT EXISTS 'food_app'@'127.0.0.1'
+    IDENTIFIED BY 'root';
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON food_fitness_tracker.* TO 'food_app'@'127.0.0.1';
+
+-- Run this block only if 'food_migrator'@'127.0.0.1' is confirmed missing.
+CREATE USER IF NOT EXISTS 'food_migrator'@'127.0.0.1'
+    IDENTIFIED BY 'root';
+GRANT SELECT, INSERT, UPDATE, CREATE, ALTER, INDEX, REFERENCES
+    ON food_fitness_tracker.* TO 'food_migrator'@'127.0.0.1';
+
+-- No FLUSH PRIVILEGES is required after CREATE USER or GRANT.
+-- Verify the exact accounts and grants afterward with SHOW GRANTS.

@@ -1,0 +1,6 @@
+[client]
+host=127.0.0.1
+port=3306
+user=food_migrator
+password=root
+database=food_fitness_tracker
