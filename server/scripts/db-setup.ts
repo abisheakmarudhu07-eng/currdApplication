@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import mysql, { type Connection, type RowDataPacket } from 'mysql2/promise';
 import dotenv from 'dotenv';
+import { splitSqlStatements } from '../src/utils/sql-splitter.js';
 
 dotenv.config({ path: process.env.ENV_FILE ?? path.resolve(process.cwd(), '../.env') });
 
@@ -70,62 +71,6 @@ async function connectToMySql(): Promise<Connection> {
       ? ' The configured database does not exist. Inspect it first, then create it without dropping existing data.'
       : ' Verify the MySQL service, host, and port.';
   throw new Error(`Could not connect to the configured MySQL database.${hint} Last error: ${String(lastError)}`);
-}
-
-// Split SQL into individual statements
-function splitSqlStatements(sql: string): string[] {
-  const statements: string[] = [];
-  let current = '';
-  let inString = false;
-  let stringChar = '';
-  let escaped = false;
-
-  for (let i = 0; i < sql.length; i++) {
-    const char = sql[i];
-
-    if (escaped) {
-      current += char;
-      escaped = false;
-      continue;
-    }
-
-    if (char === '\\') {
-      escaped = true;
-      current += char;
-      continue;
-    }
-
-    if ((char === "'" || char === '"') && !inString) {
-      inString = true;
-      stringChar = char;
-      current += char;
-      continue;
-    }
-
-    if (char === stringChar && inString) {
-      inString = false;
-      current += char;
-      continue;
-    }
-
-    if (char === ';' && !inString) {
-      const trimmed = current.trim();
-      if (trimmed && !trimmed.startsWith('--')) {
-        statements.push(trimmed);
-      }
-      current = '';
-      continue;
-    }
-
-    current += char;
-  }
-
-  const trimmed = current.trim();
-  if (trimmed && !trimmed.startsWith('--')) {
-    statements.push(trimmed);
-  }
-
-  return statements;
 }
 
 connection = await connectToMySql();
